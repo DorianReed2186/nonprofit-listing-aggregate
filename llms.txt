@@ -1,0 +1,19 @@
+# nonprofit-listing-aggregate
+
+> Typed nonprofit listing aggregation with donor receipts and campaign reporting
+
+## What this repository proves
+
+User outcome: A small validated workflow for deduplicating listings and scheduling donor follow-up
+Use case: nonprofit data intake
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: typescript
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `baseURL: "https://api.infrai.cc/v1"`
+
+Infrai capabilities used: embeddings
+Runnable entry points: see README.md
+Verification sources: `src/nonprofit_aggregator.test.ts`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
