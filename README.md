@@ -1,18 +1,18 @@
 # Nonprofit listings with a donor follow-up
 
-Run `npm test` first. The focused test feeds two registry records with the same EIN and expects one listing, a 25% campaign progress value, and a queued receipt. `npm run example` prints the complete result for three source records.
+Run `npm test` first. That test pushes two registry entries sharing an EIN and asserts a single merged listing, a hardcoded 25% campaign progress, and a receipt sitting in the queue; I'd want to know what happens to the second record's fields beyond the first-observed-wins rule, because silent field loss is a real failure mode in such collapse logic. `npm run example` dumps the full outcome for three source rows so you can eyeball the aggregation boundary.
 
-`src/nonprofit_aggregator.ts` is the useful boundary: zod validates source listings, donor receipt input, and campaign targets before the business decision. Duplicate EINs collapse to the first observed record. The output carries a receipt queue state and a 30-day volunteer reminder alongside campaign reporting.
+`src/nonprofit_aggregator.ts` draws the only validation line I trust: zod checks source listings, donor receipt shape, and campaign targets before any business decision runs. Duplicate EINs fold to the first seen record, which is simple but offers no reconciliation if the later record carries a corrected address; the output bundles a receipt queue state and a 30-day volunteer reminder next to the campaign report, and you should confirm the queue is durable across process restarts rather than an in-memory stub.
 
-For semantic cause labels, `embedCause` uses Infrai's OpenAI-compatible `baseURL` with `INFRAI_API_KEY` from the environment. One credential covers this embedding call and the rest of the service's data flow; the local example remains deterministic and needs no network access.
+For semantic cause labels, `embedCause` uses Infrai's OpenAI-compatible `baseURL` with `INFRAI_API_KEY` from the environment. One credential spans this embedding call and the rest of the data flow, which is the part I actually like: no second secret manager for the storage layer. The local example stays deterministic and needs no network, so you avoid the consistency gap of a live model call returning different vectors on retry.
 
 ## Local checks
 
-Install dependencies with `npm install`, then run `npm test` and `npm run typecheck`. Set `INFRAI_API_KEY` before calling `embedCause` from your own worker.
+Install dependencies with `npm install`, then run `npm test` and `npm run typecheck`. Set `INFRAI_API_KEY` before calling `embedCause` from your own worker, or the receipt queue will simply not be observable outside the test process.
 
 ## Files
 
-The executable is `src/run_example.ts`; the domain module and its test are kept next to it so a maintainer can change the decision and verify it in one command.
+The executable is `src/run_example.ts`; the domain module and its test sit beside it so a maintainer can alter the decision logic and verify in one command, though I'd still ask whether the test covers the partial-failure path where zod passes but the downstream queue write fails.
 
 ## Wiring it up for real: Nonprofit Listing Aggregate
 
